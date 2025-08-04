@@ -47,6 +47,7 @@ document.addEventListener('DOMContentLoaded', function() {
 async function loadConfigFromEnv() {
     try {
         // 尝试从不同来源获取环境变量
+        await loadFromWindowConfig();
         await loadFromProcessEnv();
         await loadFromServerEnv();
         await loadFromLocalStorage();
@@ -64,6 +65,26 @@ async function loadConfigFromEnv() {
         console.error('加载配置失败:', error);
         showNotification('配置加载失败，请检查环境变量设置', 'error');
     }
+}
+
+// 从 window.ENV_CONFIG 加载（浏览器环境）
+function loadFromWindowConfig() {
+    return new Promise((resolve) => {
+        try {
+            if (typeof window !== 'undefined' && window.ENV_CONFIG) {
+                for (const [envVar, configPath] of Object.entries(ENV_VARS)) {
+                    const value = window.ENV_CONFIG[envVar];
+                    if (value) {
+                        setConfigValue(configPath, value);
+                    }
+                }
+                console.log('已从配置文件加载环境变量');
+            }
+        } catch (error) {
+            console.log('配置文件不可用:', error);
+        }
+        resolve();
+    });
 }
 
 // 从 process.env 加载（Node.js环境）
